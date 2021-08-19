@@ -1,0 +1,23 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+cd "$(git rev-parse --show-toplevel)"
+
+# check commit message for JIRA-###
+text=$(head -n 1 "$COMMIT_MSG_FILE" | grep '^JIRA-[0-9]\{3\}')
+if [ "$text" = "" ]; then
+  exit 1
+fi
+
+# check new files for copyright notice
+files=$(git diff --cached --diff-filter=ACMR --name-only | grep '\.\(cs\|java\|js\|py\|ts\)')
+for f in "$files";
+do
+  match=$(grep -Ei copyright "$f")
+  if [ "$match" = "" ]; then
+    exit 1
+  fi
+done
